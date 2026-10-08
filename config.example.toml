@@ -1,0 +1,34 @@
+# gallery configuration
+
+[server]
+host = "0.0.0.0"
+port = 8080
+
+[database]
+path = "./data/gallery.db"
+
+[webdav]
+# dufs WebDAV root that contains your media. The gallery only issues PROPFIND / GET / HEAD.
+url = "http://192.168.1.200/dav/gallery/"
+username = ""
+password = ""
+readonly = true
+
+[sync]
+interval = "10m"        # "0" disables periodic sync
+on_startup = true
+retention_days = 30     # keep records of vanished files this long
+max_hash_per_run = 200  # cap on on-demand content hashes per sync
+exclude = [".DS_Store", "@eaDir", "#recycle", "Thumbs.db"]
+allow_empty_remote = false  # refuse to mark everything missing if the source looks empty
+
+[thumbnail]
+workers = 1
+interval = "30m"        # "0" disables the periodic job (manual trigger still works)
+batch_size = 200        # files handled per periodic run
+ffmpeg = "ffmpeg"       # e.g. "/usr/bin/ffmpeg"
+directory = "./data/thumbnails"
+size = 480              # long edge in pixels
+
+[log]
+level = "info"
