@@ -221,12 +221,16 @@ async fn do_sync(app: &Shared) -> Result<SyncResult> {
     for f in &remote {
         *remote_key_count.entry((f.size, f.mtime)).or_default() += 1;
     }
+    let changed_paths: HashSet<&str> = changed.iter().map(|(_, f)| f.path.as_str()).collect();
+    let mut queued: HashSet<&str> = to_hash.iter().map(|f| f.path.as_str()).collect();
     for f in &remote {
         if f.size > 0 && remote_key_count.get(&(f.size, f.mtime)).copied().unwrap_or(0) > 1 {
-            if let Some(r) = by_path.get(f.path.as_str()) {
-                if r.hash.is_none() && r.status != "missing" {
-                    to_hash.push(f);
-                }
+            let need = match by_path.get(f.path.as_str()) {
+                Some(r) => r.status != "missing" && (r.hash.is_none() || changed_paths.contains(f.path.as_str())),
+                None => true,
+            };
+            if need && queued.insert(f.path.as_str()) {
+                to_hash.push(f);
             }
         }
     }
